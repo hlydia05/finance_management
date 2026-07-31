@@ -6,29 +6,36 @@ import userRouter from './routes/userRoute.js';
 import incomeRouter from './routes/incomeRoute.js';
 import expenseRouter from './routes/expenseRoute.js';
 import dashboardRouter from './routes/dashboardRoute.js';
+import budgetRouter from './routes/budgetRoute.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-// middlewares
+// Middlewares - No special webhook route needed
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// database
+// Database connection
 connectDB().catch(err => {
     console.error('Failed to connect to database:', err);
     process.exit(1);
 });
 
-//routes
+// Routes
 app.use("/api/user", userRouter);
 app.use("/api/income", incomeRouter);
 app.use("/api/expense", expenseRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/budget", budgetRouter);
 
-app.get('/', (req, res) => {
-    res.send("API WORKING");
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        message: 'Finance Manager API is running',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // 404 handler for undefined routes
@@ -42,12 +49,13 @@ app.use((req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
-    res.status(500).json({
+    res.status(err.status || 500).json({
         success: false,
-        message: "Internal server error"
+        message: err.message || "Internal server error"
     });
 });
 
 app.listen(port, () => {
-    console.log(`Server started on http://localhost:${port}`);
+    console.log(`🚀 Server started on http://localhost:${port}`);
+    console.log(`📊 Budget API available at http://localhost:${port}/api/budget`);
 });

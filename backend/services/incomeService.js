@@ -9,7 +9,7 @@ export const incomeService = {
         const newIncome = new incomeModel({
             userId,
             description,
-            amount,
+            amount: Number(amount), // FIXED: Ensure amount is a number
             category,
             date: new Date(date),
         });
@@ -33,7 +33,7 @@ export const incomeService = {
                 _id: incomeId,
                 userId,
             },
-            { description, amount },
+            { description, amount: Number(amount) }, // FIXED: Ensure amount is a number
             { new: true, runValidators: true }
         );
 
@@ -69,7 +69,7 @@ export const incomeService = {
             })
             .sort({ date: -1 });
 
-        const totalIncome = incomes.reduce((acc, cur) => acc + cur.amount, 0);
+        const totalIncome = incomes.reduce((acc, cur) => acc + Number(cur.amount || 0), 0);
         const averageIncome = incomes.length > 0 ? totalIncome / incomes.length : 0;
         const numberOfTransactions = incomes.length;
         const recentTransactions = incomes.slice(0, 9);

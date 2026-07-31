@@ -1,5 +1,4 @@
-/*because Node.js itself is failing to reach the DNS server directly even though Windows' own stub resolver handles it fine.*/
-
+// DNS configuration for better MongoDB connectivity
 import dns from 'dns';
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
@@ -10,10 +9,20 @@ export const connectDB = async () => {
         if (!process.env.MONGODB_URI) {
             throw new Error('MONGODB_URI is not defined in environment variables');
         }
-        const conn = await mongoose.connect(process.env.MONGODB_URI);
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
+        
+        const conn = await mongoose.connect(process.env.MONGODB_URI, {
+            // Recommended connection options
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+        
+        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+        console.log(`📊 Database: ${conn.connection.name}`);
     } catch (error) {
-        console.error(`Error connecting to MongoDB: ${error.message}`);
-        process.exit(1);
+        console.error(`❌ Error connecting to MongoDB: ${error.message}`);
+        // Don't exit process in development to allow for retry
+        if (process.env.NODE_ENV === 'production') {
+            process.exit(1);
+        }
     }
 };

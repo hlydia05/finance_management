@@ -1,5 +1,5 @@
 import XLSX from "xlsx";
-import { incomeService } from "../service/incomeService.js";
+import { incomeService } from "../services/incomeService.js";
 
 // Add income
 export async function addIncome(req, res) {

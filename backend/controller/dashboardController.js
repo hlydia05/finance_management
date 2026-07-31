@@ -1,6 +1,8 @@
 import { dashboardService } from "../services/dashboardService.js";
 
-// Get dashboard overview
+/**
+ * Get complete dashboard overview
+ */
 export async function getDashboardOverview(req, res) {
     const userId = req.user._id;
 
@@ -21,7 +23,9 @@ export async function getDashboardOverview(req, res) {
     }
 }
 
-// Get monthly trends for charts
+/**
+ * Get monthly trends for charts
+ */
 export async function getMonthlyTrends(req, res) {
     const userId = req.user._id;
     const { months = 6 } = req.query;
@@ -42,13 +46,19 @@ export async function getMonthlyTrends(req, res) {
     }
 }
 
-// Get top spending categories
+/**
+ * Get top spending categories
+ */
 export async function getTopSpendingCategories(req, res) {
     const userId = req.user._id;
-    const { limit = 5 } = req.query;
+    const { limit = 5, range = 'monthly' } = req.query;
 
     try {
-        const categories = await dashboardService.getTopSpendingCategories(userId, parseInt(limit));
+        const categories = await dashboardService.getTopSpendingCategories(
+            userId, 
+            parseInt(limit),
+            range
+        );
 
         return res.status(200).json({
             success: true,
@@ -63,7 +73,9 @@ export async function getTopSpendingCategories(req, res) {
     }
 }
 
-// Get financial summary
+/**
+ * Get financial summary
+ */
 export async function getFinancialSummary(req, res) {
     const userId = req.user._id;
 
@@ -79,6 +91,29 @@ export async function getFinancialSummary(req, res) {
         return res.status(500).json({
             success: false,
             message: "Failed to fetch financial summary",
+        });
+    }
+}
+
+/**
+ * Get cash flow forecast (NEW FEATURE)
+ */
+export async function getCashFlowForecast(req, res) {
+    const userId = req.user._id;
+    const { months = 3 } = req.query;
+
+    try {
+        const forecast = await dashboardService.getCashFlowForecast(userId, parseInt(months));
+
+        return res.status(200).json({
+            success: true,
+            data: forecast,
+        });
+    } catch (error) {
+        console.error("GetCashFlowForecast Error: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to generate cash flow forecast",
         });
     }
 }

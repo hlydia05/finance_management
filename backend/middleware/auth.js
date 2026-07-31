@@ -1,71 +1,131 @@
-import User from "../model/userModel.js";
-import jwt from 'jsonwebtoken';
+import { Clerk } from '@clerk/clerk-sdk-node';
+import User from '../model/userModel.js';
 
-// Use environment variable for JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'this_is_an_awesome_finance_manager';
+// Initialize Clerk client
+const clerk = new Clerk({
+    secretKey: process.env.CLERK_SECRET_KEY,
+});
 
+/**
+ * Authentication middleware using Clerk
+ * Verifies the JWT token from the Authorization header
+ * Creates user in database if they don't exist (just-in-time)
+ * Attaches the user to the request object
+ */
 export default async function authMiddleware(req, res, next) {
-    // Grab token from Authorization header
-    const authHeader = req.headers.authorization;
-    
-    // Check if header exists and is a string
-    if (!authHeader || typeof authHeader !== 'string') {
-        return res.status(401).json({
-            success: false,
-            message: "Not authorized - No token provided or invalid format"
-        });
-    }
-
-    // Check if header starts with "Bearer "
-    if (!authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({
-            success: false,
-            message: "Not authorized - Invalid token format. Use 'Bearer <token>'"
-        });
-    }
-
-    // Extract the token (remove "Bearer " prefix)
-    const token = authHeader.split(" ")[1];
-
-    // Verify token exists after splitting
-    if (!token || token.trim() === '') {
-        return res.status(401).json({
-            success: false,
-            message: "Not authorized - Token is empty"
-        });
-    }
-
     try {
-        const payload = jwt.verify(token, JWT_SECRET);
-        // Find user by id (excluding password)
-        const user = await User.findById(payload.id).select("-password");
-        if (!user) {
+        // Get the authorization header
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
-                message: "User not found"
+                message: 'Not authorized - No token provided or invalid format'
             });
         }
 
-        // Attach user to request
+        const token = authHeader.split(' ')[1];
+        
+        if (!token || token.trim() === '') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized - Token is empty'
+            });
+        }
+
+        // Verify token with Clerk
+        const session = await clerk.verifyToken(token);
+        
+        if (!session || !session.sub) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid or expired token'
+            });
+        }
+
+        // Try to find user in database
+        let user = await User.findOne({ clerkUserId: session.sub }).select('-clerkMetadata');
+
+        if (!user) {
+            // User doesn't exist yet - create them now (just-in-time)
+            try {
+                const clerkUser = await clerk.users.getUser(session.sub);
+                const primaryEmail = clerkUser.emailAddresses.find(
+                    email => email.id === clerkUser.primaryEmailAddressId
+                );
+
+                user = await User.create({
+                    clerkUserId: session.sub,
+                    email: primaryEmail?.emailAddress || '',
+                    name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'User',
+                    clerkMetadata: {
+                        profileImageUrl: clerkUser.profileImageUrl,
+                        clerkCreatedAt: new Date(clerkUser.createdAt),
+                        clerkUpdatedAt: new Date(clerkUser.updatedAt),
+                    },
+                    lastLoginAt: new Date(),
+                    isActive: true,
+                });
+
+                console.log(`✅ User ${session.sub} created in database on first request`);
+            } catch (createError) {
+                console.error('Failed to create user in database:', createError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create user profile'
+                });
+            }
+        } else {
+            // User exists - update last login time
+            await User.findByIdAndUpdate(user._id, { lastLoginAt: new Date() });
+        }
+
+        // Attach user and clerk session to request
         req.user = user;
+        req.clerkUserId = session.sub;
+        req.session = session;
+        
         next();
     } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
+        console.error('Auth middleware error:', error);
+        
+        if (error.status === 401 || error.message?.includes('invalid') || error.message?.includes('expired')) {
             return res.status(401).json({
                 success: false,
-                message: "Invalid token"
+                message: 'Authentication failed - Invalid or expired token'
             });
         }
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                success: false,
-                message: "Token expired"
-            });
-        }
-        console.error("Auth middleware error:", error);
-        res.status(401).json({
+        
+        return res.status(500).json({
             success: false,
-            message: "Authentication failed"
+            message: 'Authentication service error'
         });
     }
 }
+
+// Optional: Middleware to check if user is admin or has specific roles
+export const requireRole = (roles) => {
+    return async (req, res, next) => {
+        try {
+            const user = await clerk.users.getUser(req.clerkUserId);
+            const userRoles = user.publicMetadata?.roles || [];
+            
+            const hasRole = roles.some(role => userRoles.includes(role));
+            
+            if (!hasRole) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Insufficient permissions'
+                });
+            }
+            
+            next();
+        } catch (error) {
+            console.error('Role check error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error checking user permissions'
+            });
+        }
+    };
+};

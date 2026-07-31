@@ -1,21 +1,19 @@
 import express from 'express';
-import { getCurrentUser, loginUser, registerUser, updatePassword, updateProfile } from '../controller/userController.js';
+import { 
+    getCurrentUser, 
+    updateProfile, 
+    getUserStats 
+} from '../controllers/userController.js';
 import authMiddleware from '../middleware/auth.js';
 
 const userRouter = express.Router();
 
-userRouter.post("/register", registerUser);
-userRouter.post("/login", loginUser);
+// Public routes (none - registration handled by Clerk)
 
-//protected routes
-
+// Protected routes
 userRouter.use(authMiddleware);
 userRouter.get("/me", getCurrentUser);
 userRouter.put("/profile", updateProfile);
-userRouter.put("/password", updatePassword);
-
-userRouter.use("/incomes", incomeRouter);
-userRouter.use("/expenses", expenseRouter);
-userRouter.use("/dashboard", dashboardRouter);
+userRouter.get("/stats", getUserStats);
 
 export default userRouter;
