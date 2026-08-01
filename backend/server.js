@@ -12,7 +12,10 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 // Middlewares - No special webhook route needed
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -55,7 +58,8 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(port, () => {
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
     console.log(`🚀 Server started on http://localhost:${port}`);
-    console.log(`📊 Budget API available at http://localhost:${port}/api/budget`);
-});
+  });
+}
