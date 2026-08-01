@@ -125,22 +125,17 @@ export async function downloadExpenseExcel(req, res) {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Expenses");
 
-        // Write file
+        // Write the workbook straight to a buffer - no temp file on disk,
+        // so there's nothing to clean up and no filesystem permission issues.
+        const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
         const fileName = `expense_details_${Date.now()}.xlsx`;
-        XLSX.writeFile(workbook, fileName);
-        
-        // Download the file
-        res.download(fileName, (err) => {
-            if (err) {
-                console.error("Download error:", err);
-                res.status(500).json({
-                    success: false,
-                    message: "Error downloading file",
-                });
-            }
-            // Optional: Delete the file after download
-            // fs.unlinkSync(fileName);
-        });
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        res.send(buffer);
     } catch (error) {
         console.error(error);
         res.status(500).json({

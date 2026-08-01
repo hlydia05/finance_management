@@ -15,6 +15,8 @@ const SpendingChart = ({ data }) => {
     );
   }
 
+  const total = data.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+
   return (
     <div className="card">
       <h3 className="font-semibold text-gray-900 mb-4">Spending Distribution</h3>
@@ -28,15 +30,17 @@ const SpendingChart = ({ data }) => {
               cx="50%"
               cy="50%"
               outerRadius={80}
-              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+              label={({ amount }) =>
+                `${total > 0 ? Math.round((Number(amount) / total) * 100) : 0}%`
+              }
               labelLine={false}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${entry.category ?? index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value) => `$${value.toFixed(2)}`}
+            <Tooltip
+              formatter={(value) => `$${Number(value).toFixed(2)}`}
             />
             <Legend />
           </PieChart>

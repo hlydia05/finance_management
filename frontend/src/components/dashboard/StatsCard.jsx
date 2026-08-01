@@ -5,6 +5,8 @@ const colorMap = {
   red: 'bg-red-50 border-red-100',
   blue: 'bg-blue-50 border-blue-100',
   purple: 'bg-purple-50 border-purple-100',
+  teal: 'bg-teal-50 border-teal-100',
+  amber: 'bg-amber-50 border-amber-100',
 };
 
 const StatsCard = ({ title, value, icon, color = 'blue' }) => {

@@ -3,6 +3,7 @@ import api from '../api/client';
 import StatsCard from '../components/dashboard/StatsCard';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
 import SpendingChart from '../components/dashboard/SpendingChart';
+import TrendsChart from '../components/dashboard/TrendsChart';
 import BudgetProgress from '../components/dashboard/BudgetProgress';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -10,11 +11,14 @@ import {
   ArrowUpIcon, 
   ArrowDownIcon, 
   BanknotesIcon, 
-  WalletIcon 
+  WalletIcon,
+  ArrowTrendingUpIcon,
+  ChartPieIcon,
 } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
+  const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,8 +27,12 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await api.get('/dashboard');
-      setDashboardData(response.data.data);
+      const [overviewRes, summaryRes] = await Promise.all([
+        api.get('/dashboard'),
+        api.get('/dashboard/summary'),
+      ]);
+      setDashboardData(overviewRes.data.data);
+      setSummaryData(summaryRes.data.data);
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       toast.error('Failed to load dashboard data');
@@ -45,6 +53,8 @@ const Dashboard = () => {
     recentTransactions 
   } = dashboardData;
 
+  const { netSavings, savingsRate: overallSavingsRate } = summaryData || {};
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -53,32 +63,58 @@ const Dashboard = () => {
         <p className="text-gray-500">Overview of your financial health</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="Income"
-          value={monthlyIncome}
-          icon={<ArrowUpIcon className="w-6 h-6 text-green-500" />}
-          color="green"
-        />
-        <StatsCard
-          title="Expenses"
-          value={monthlyExpense}
-          icon={<ArrowDownIcon className="w-6 h-6 text-red-500" />}
-          color="red"
-        />
-        <StatsCard
-          title="Savings"
-          value={savings}
-          icon={<WalletIcon className="w-6 h-6 text-blue-500" />}
-          color="blue"
-        />
-        <StatsCard
-          title="Savings Rate"
-          value={savingsRate + '%'}
-          icon={<BanknotesIcon className="w-6 h-6 text-purple-500" />}
-          color="purple"
-        />
+      {/* Stats Cards - this month */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          This Month
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatsCard
+            title="Income"
+            value={monthlyIncome}
+            icon={<ArrowUpIcon className="w-6 h-6 text-green-500" />}
+            color="green"
+          />
+          <StatsCard
+            title="Expenses"
+            value={monthlyExpense}
+            icon={<ArrowDownIcon className="w-6 h-6 text-red-500" />}
+            color="red"
+          />
+          <StatsCard
+            title="Savings"
+            value={savings}
+            icon={<WalletIcon className="w-6 h-6 text-blue-500" />}
+            color="blue"
+          />
+          <StatsCard
+            title="Savings Rate"
+            value={savingsRate + '%'}
+            icon={<BanknotesIcon className="w-6 h-6 text-purple-500" />}
+            color="purple"
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards - all time */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          All Time
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <StatsCard
+            title="Total Savings"
+            value={netSavings ?? 0}
+            icon={<ArrowTrendingUpIcon className="w-6 h-6 text-teal-500" />}
+            color="teal"
+          />
+          <StatsCard
+            title="Overall Savings Rate"
+            value={(overallSavingsRate ?? 0) + '%'}
+            icon={<ChartPieIcon className="w-6 h-6 text-amber-500" />}
+            color="amber"
+          />
+        </div>
       </div>
 
       {/* Charts and Progress */}
@@ -90,6 +126,9 @@ const Dashboard = () => {
           <BudgetProgress />
         </div>
       </div>
+
+      {/* Trends */}
+      <TrendsChart />
 
       {/* Recent Transactions */}
       <RecentTransactions transactions={recentTransactions} />

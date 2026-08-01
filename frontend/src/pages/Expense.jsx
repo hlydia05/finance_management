@@ -46,6 +46,23 @@ const Expense = () => {
     fetchExpenses();
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await api.get('/expense/downloadexcel', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `expense_details_${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting expenses:', error);
+      toast.error('Failed to export expense data');
+    }
+  };
+
   const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
 
   if (loading) return <LoadingSpinner />;
@@ -60,7 +77,7 @@ const Expense = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.open('/api/expense/downloadexcel', '_blank')}
+            onClick={handleExport}
             className="btn-secondary flex items-center gap-2"
           >
             <ArrowDownTrayIcon className="w-4 h-4" />

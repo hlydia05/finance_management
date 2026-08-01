@@ -18,7 +18,7 @@ const navigation = [
 
 const Sidebar = () => {
   return (
-    <aside className="w-16 lg:w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16 flex-shrink-0">
+    <aside className="fixed left-0 top-16 z-30 w-16 lg:w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 flex-shrink-0 overflow-y-auto">
       <nav className="p-2 lg:p-4 space-y-1">
         {navigation.map((item) => (
           <NavLink
