@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useClerk, useUser } from '@clerk/clerk-react';
+import { useClerk, useUser, useAuth as useClerkAuth } from '@clerk/clerk-react';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 
@@ -7,6 +7,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const { user: clerkUser, isLoaded, isSignedIn } = useUser();
+  const { getToken } = useClerkAuth();
   const { signOut } = useClerk();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
       if (isSignedIn && clerkUser) {
         try {
           // Get Clerk session token
-          const sessionToken = await clerkUser.getToken();
+          const sessionToken = await getToken();
           if (sessionToken) {
             localStorage.setItem('token', sessionToken);
             setToken(sessionToken);
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     syncUserWithBackend();
-  }, [isLoaded, isSignedIn, clerkUser]);
+  }, [isLoaded, isSignedIn, clerkUser, getToken]);
 
   const logout = async () => {
     try {

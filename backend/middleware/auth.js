@@ -1,4 +1,5 @@
 import { createClerkClient } from '@clerk/clerk-sdk-node';
+import User from '../model/userModel.js';
 
 // Initialize Clerk client
 const clerk = createClerkClient({
