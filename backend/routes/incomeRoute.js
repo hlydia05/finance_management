@@ -7,7 +7,7 @@ import {
     deleteIncome,
     downloadIncomeExcel,
     getIncomeOverview
-} from '../controllers/incomeController.js';
+} from '../controller/incomeController.js';
 
 const incomeRouter = express.Router();
 

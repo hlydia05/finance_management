@@ -3,7 +3,7 @@ import {
     getCurrentUser, 
     updateProfile, 
     getUserStats 
-} from '../controllers/userController.js';
+} from '../controller/userController.js';
 import authMiddleware from '../middleware/auth.js';
 
 const userRouter = express.Router();

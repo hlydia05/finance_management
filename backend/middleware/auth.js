@@ -1,8 +1,7 @@
-import { Clerk } from '@clerk/clerk-sdk-node';
-import User from '../model/userModel.js';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 
 // Initialize Clerk client
-const clerk = new Clerk({
+const clerk = createClerkClient({
     secretKey: process.env.CLERK_SECRET_KEY,
 });
 
@@ -33,7 +32,7 @@ export default async function authMiddleware(req, res, next) {
             });
         }
 
-        // Verify token with Clerk
+        // Verify token with Clerk - Using clerk.verifyToken()
         const session = await clerk.verifyToken(token);
         
         if (!session || !session.sub) {
@@ -49,6 +48,7 @@ export default async function authMiddleware(req, res, next) {
         if (!user) {
             // User doesn't exist yet - create them now (just-in-time)
             try {
+                // Get user from Clerk using clerk.users.getUser()
                 const clerkUser = await clerk.users.getUser(session.sub);
                 const primaryEmail = clerkUser.emailAddresses.find(
                     email => email.id === clerkUser.primaryEmailAddressId

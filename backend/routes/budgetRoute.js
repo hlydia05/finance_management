@@ -7,7 +7,7 @@ import {
     updateBudget,
     deleteBudget,
     getBudgetProgress,
-} from '../controllers/budgetController.js';
+} from '../controller/budgetController.js';
 
 const budgetRouter = express.Router();
 

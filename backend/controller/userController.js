@@ -1,6 +1,11 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 import User from '../model/userModel.js';
-import mongoose from 'mongoose'; // FIXED: Added missing import
+import mongoose from 'mongoose';
+
+// Initialize Clerk client
+const clerk = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+});
 
 /**
  * Get current authenticated user

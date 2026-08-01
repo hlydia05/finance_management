@@ -7,7 +7,7 @@ import {
     deleteExpense,
     downloadExpenseExcel,
     getExpenseOverview
-} from '../controllers/expenseController.js';
+} from '../controller/expenseController.js';
 
 const expenseRouter = express.Router();
 

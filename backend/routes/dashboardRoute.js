@@ -5,7 +5,7 @@ import {
     getMonthlyTrends,
     getTopSpendingCategories,
     getFinancialSummary
-} from '../controllers/dashboardController.js';
+} from '../controller/dashboardController.js';
 
 const dashboardRouter = express.Router();
 
