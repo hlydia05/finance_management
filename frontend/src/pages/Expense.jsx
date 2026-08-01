@@ -5,8 +5,12 @@ import Modal from '../components/common/Modal';
 import ExpenseForm from '../components/forms/ExpenseForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/helpers';
 
 const Expense = () => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,7 +100,7 @@ const Expense = () => {
       {/* Total */}
       <div className="card bg-red-50 border-red-200">
         <p className="text-sm font-medium text-red-700">Total Expenses</p>
-        <p className="text-3xl font-bold text-red-700">${totalExpense.toFixed(2)}</p>
+        <p className="text-3xl font-bold text-red-700">{formatCurrency(totalExpense, currency)}</p>
       </div>
 
       {/* Expense List */}
@@ -117,7 +121,7 @@ const Expense = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-lg font-semibold text-red-600">
-                    -${Number(expense.amount).toFixed(2)}
+                    -{formatCurrency(expense.amount, currency)}
                   </span>
                   <button
                     onClick={() => {

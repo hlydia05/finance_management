@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const colorMap = {
   green: 'bg-green-50 border-green-100',
@@ -10,8 +12,10 @@ const colorMap = {
 };
 
 const StatsCard = ({ title, value, icon, color = 'blue' }) => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const formattedValue = typeof value === 'number' 
-    ? `$${value.toFixed(2)}` 
+    ? formatCurrency(value, currency) 
     : value;
 
   return (

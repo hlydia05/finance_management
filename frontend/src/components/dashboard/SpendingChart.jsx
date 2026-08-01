@@ -1,9 +1,14 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#6b7280'];
 
 const SpendingChart = ({ data }) => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
+
   if (!data || data.length === 0) {
     return (
       <div className="card">
@@ -40,7 +45,7 @@ const SpendingChart = ({ data }) => {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => `$${Number(value).toFixed(2)}`}
+              formatter={(value) => formatCurrency(value, currency)}
             />
             <Legend />
           </PieChart>

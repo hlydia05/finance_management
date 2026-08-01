@@ -13,8 +13,12 @@ import {
 } from 'recharts';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const TrendsChart = () => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const [trends, setTrends] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,8 +59,8 @@ const TrendsChart = () => {
           <ComposedChart data={trends} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${v}`} />
-            <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCurrency(v, currency)} />
+            <Tooltip formatter={(value) => formatCurrency(value, currency)} />
             <Legend />
             <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expense" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />

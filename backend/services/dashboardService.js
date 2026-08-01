@@ -131,6 +131,7 @@ export const dashboardService = {
         const totalIncome = allIncomes.reduce((acc, cur) => acc + Number(cur.amount || 0), 0);
         const totalExpense = allExpenses.reduce((acc, cur) => acc + Number(cur.amount || 0), 0);
         const netSavings = totalIncome - totalExpense;
+        const savingsRate = totalIncome === 0 ? 0 : Math.round((netSavings / totalIncome) * 100);
 
         // Get first transaction date
         const firstIncome = await incomeModel.findOne({ userId })
@@ -149,6 +150,7 @@ export const dashboardService = {
             totalIncome,
             totalExpense,
             netSavings,
+            savingsRate,
             totalTransactions: allIncomes.length + allExpenses.length,
             startDate,
             monthsTracked,

@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const BudgetProgress = () => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +53,7 @@ const BudgetProgress = () => {
                 <div className="flex justify-between text-sm mb-1">
                   <span className="font-medium text-gray-700">{budget.category}</span>
                   <span className="text-gray-600">
-                    ${budget.spent.toFixed(0)} / ${budget.amount.toFixed(0)}
+                    {formatCurrency(budget.spent, currency)} / {formatCurrency(budget.amount, currency)}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -65,7 +69,7 @@ const BudgetProgress = () => {
                     {isExceeded ? '⚠️ Exceeded' : isWarning ? '⚠️ Near limit' : `${Math.round(percentUsed)}% used`}
                   </span>
                   <span className="text-gray-500">
-                    ${Math.max(budget.remaining, 0).toFixed(0)} remaining
+                    {formatCurrency(Math.max(budget.remaining, 0), currency)} remaining
                   </span>
                 </div>
               </div>

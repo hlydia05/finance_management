@@ -1,7 +1,11 @@
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const RecentTransactions = ({ transactions }) => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   if (!transactions || transactions.length === 0) {
     return (
       <div className="card">
@@ -51,7 +55,7 @@ const RecentTransactions = ({ transactions }) => {
                 </div>
               </div>
               <span className={`text-sm font-semibold flex-shrink-0 ml-3 ${amountColor}`}>
-                {amountPrefix}${Number(transaction.amount).toFixed(2)}
+                {amountPrefix}{formatCurrency(transaction.amount, currency)}
               </span>
             </div>
           );

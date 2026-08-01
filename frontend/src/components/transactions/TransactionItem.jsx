@@ -1,7 +1,11 @@
 import React from 'react';
 import { PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
+import { formatCurrency } from '../../utils/helpers';
 
 const TransactionItem = ({ transaction, onEdit, onDelete }) => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const isIncome = transaction.type === 'income';
   const amountColor = isIncome ? 'text-green-600' : 'text-red-600';
   const amountPrefix = isIncome ? '+' : '-';
@@ -40,7 +44,7 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
       
       <div className="flex items-center gap-3 ml-4 flex-shrink-0">
         <span className={`text-base font-semibold ${amountColor}`}>
-          {amountPrefix}${Number(transaction.amount).toFixed(2)}
+          {amountPrefix}{formatCurrency(transaction.amount, currency)}
         </span>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button

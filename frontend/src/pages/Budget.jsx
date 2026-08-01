@@ -5,8 +5,12 @@ import Modal from '../components/common/Modal';
 import BudgetForm from '../components/forms/BudgetForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/helpers';
 
 const Budget = () => {
+  const { user } = useAuth();
+  const currency = user?.preferences?.currency || 'USD';
   const [budgets, setBudgets] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +142,7 @@ const Budget = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Spent</span>
                     <span className="font-medium">
-                      ${budget.spent.toFixed(2)} / ${budget.amount.toFixed(2)}
+                      {formatCurrency(budget.spent, currency)} / {formatCurrency(budget.amount, currency)}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
@@ -156,7 +160,7 @@ const Budget = () => {
                     {isExceeded ? '⚠️ Exceeded' : isWarning ? '⚠️ Near limit' : `${Math.round(percentUsed)}% used`}
                   </span>
                   <span className="text-gray-500">
-                    ${Math.max(budget.remaining, 0).toFixed(2)} remaining
+                    {formatCurrency(Math.max(budget.remaining, 0), currency)} remaining
                   </span>
                 </div>
               </div>
