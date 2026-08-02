@@ -20,9 +20,5 @@ export const connectDB = async () => {
         console.log(`📊 Database: ${conn.connection.name}`);
     } catch (error) {
         console.error(`❌ Error connecting to MongoDB: ${error.message}`);
-        // Don't exit process in development to allow for retry
-        if (process.env.NODE_ENV === 'production') {
-            process.exit(1);
-        }
     }
 };
